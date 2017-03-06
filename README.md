@@ -1,6 +1,6 @@
 # FullBodyAnimation
 
-# Useful informations
+## Useful informations
 I used the free software MakeHuman to generate differents human bodies. 
 I export this bodies in DAE files in order to modify them and rig them properly with Blender. 
 I have to rig the bodies in order to match all the joints that Kinect uses in order to track the movement of the bodies.
