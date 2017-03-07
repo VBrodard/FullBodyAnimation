@@ -6,12 +6,19 @@ using Kinect = Windows.Kinect;
 public class BodyView : MonoBehaviour
 {
     public GameObject BodyManager;
+    
+    //We use a body prefab to generate the bodies of each tracked person
     public GameObject FullBodyPrefab;
-
     GameObject FullBody;
 
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
+
+    //This dictionary contains references of the bones of the instantiated body
+    private Dictionary<ulong, List<Transform>> _JointRig = new Dictionary<ulong, List<Transform>>();
+    //private List<GameObject> JointRig = new List<GameObject>();
+
     private BodyManager _BodyManager;
+    
     // map out all the bones by the two joints that they will be connected to
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -48,6 +55,44 @@ public class BodyView : MonoBehaviour
         { Kinect.JointType.SpineMid, Kinect.JointType.SpineShoulder },
         { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
         { Kinect.JointType.Neck, Kinect.JointType.Head },
+    };
+
+    //This dictionary will be used to find all the bones of the armature
+    private Dictionary<Kinect.JointType, string> _KinectToRig = new Dictionary<Kinect.JointType, string>()
+    {
+        //Left leg
+        { Kinect.JointType.FootLeft, "Foot_L"},
+        { Kinect.JointType.AnkleLeft, "Ankle_L"},
+        { Kinect.JointType.KneeLeft, "Knee_L" },
+        { Kinect.JointType.HipLeft, "Hip_L"},
+
+        //Right leg
+        { Kinect.JointType.FootRight, "Foot_R" },
+        { Kinect.JointType.AnkleRight, "Ankle_R" },
+        { Kinect.JointType.KneeRight, "Knee_R" },
+        { Kinect.JointType.HipRight, "Hip_R" },
+
+        //Left arm
+        { Kinect.JointType.HandTipLeft, "HandTip_L" }, //Need this for HandSates
+        { Kinect.JointType.ThumbLeft, "Thumb_L" },
+        { Kinect.JointType.HandLeft, "Hand_L" },
+        { Kinect.JointType.WristLeft, "Wrist_L" },
+        { Kinect.JointType.ElbowLeft, "Elbow_L" },
+        { Kinect.JointType.ShoulderLeft, "Shoulder_L" },
+
+        //Right arm
+        { Kinect.JointType.HandTipRight, "HandTip_R" }, //Needthis for Hand State
+        { Kinect.JointType.ThumbRight, "Thumb_R" },
+        { Kinect.JointType.HandRight, "Hand_R"},
+        { Kinect.JointType.WristRight, "Wrist_R" },
+        { Kinect.JointType.ElbowRight, "Elbow_R" },
+        { Kinect.JointType.ShoulderRight, "Shoulder_R" },
+
+        //Spine and head
+        { Kinect.JointType.SpineBase, "SpineBase" },
+        { Kinect.JointType.SpineMid, "SpineMid" },
+        { Kinect.JointType.SpineShoulder, "SpineShoulder" },
+        { Kinect.JointType.Neck, "Neck" },
     };
     // Update is called on each frames
     void Update()
@@ -90,9 +135,12 @@ public class BodyView : MonoBehaviour
                 {
                     //if the body isn't already in the _Bodies dictionnary, we create a new body object and add it to the dictionnary
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId, body);
-                }
+                    //We need to associate the joints of the specific character to his body
+                    _JointRig[body.TrackingId] = ReferenceRigToBody(body, _KinectToRig, _Bodies[body.TrackingId]);
+                        
+}
                 //otherwise the body exists already and we have to refresh it
-                RefreshBodyObject(body, _Bodies[body.TrackingId]);
+                RefreshBodyObject(body, _Bodies[body.TrackingId], _KinectToRig);
             }
         }
 
@@ -115,49 +163,17 @@ public class BodyView : MonoBehaviour
         FullBody = Instantiate(FullBodyPrefab) as GameObject;
         FullBody.name = "Body:" + id;
 
-        //Joint hierarchy flows from the center of the body to the extremities. It will go on each joint
-        //The value of SpineBase = 0 and the value of the ThumbRight = 24, the maximum 
-        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
-        {
-            GameObject jointObj = GameObject.CreatePrimitive(PrimitiveType.Sphere); //for each joint we create a gameObject with a sphere
-            jointObj.GetComponent<Collider>().isTrigger = true;
-
-            Kinect.Joint? targetJoint = null;
-
-            if (_BoneMap.ContainsKey(jt))
-            {
-                targetJoint = bodyKinect.Joints[_BoneMap[jt]]; //parent of the analyzed joint
-                //{ Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft }, AnkleLeft joint will be the targetJoint of FootLeft joint
-            }
-
-            if (targetJoint != null && jt != Kinect.JointType.Neck) //we add a cylinder only to the joints that have a parent 
-            {
-                GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                cylinder.GetComponent<Collider>().isTrigger = true;
-                cylinder.name = jt.ToString() + " bone";
-                cylinder.transform.parent = jointObj.transform; //we attach the cylinder to the jointObj parent
-            }
-            if (jt == Kinect.JointType.Head)
-            {
-                jointObj.transform.localScale = new Vector3(0f, 0f, 0f);
-            }
-            else
-            {
-                jointObj.transform.localScale = new Vector3(1f, 1f, 1f);
-            }
-            jointObj.name = jt.ToString();
-            jointObj.transform.parent = FullBody.transform; //we attach the joint to the body parent
-        }
-
         return FullBody;
     }
 
-    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject)
+    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject, Dictionary<Kinect.JointType, string> _KinectToRig)
     {
         for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         {
             Kinect.Joint sourceJoint = body.Joints[jt]; //we load the data of the kinect joint
-      
+
+            //Transform jointObj = bodyObject.transform.FindChild(_KinectToRig[jt]);
+
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString()); //we store the position of the current jt
             jointObj.localPosition = GetVector3FromJoint(sourceJoint); //set the local position of each joint, we "scale" the distance of everything by 10
                                                                        //otherwise we would be represented as a heap of spheres
@@ -186,23 +202,22 @@ public class BodyView : MonoBehaviour
         }
     }
 
+    private List<Transform> ReferenceRigToBody(Kinect.Body body, Dictionary<Kinect.JointType, string> _KinectToRig, GameObject Fullbody)
+    {
+        List<Transform> JointRig = new List<Transform>();
+
+        //this loop will go through all the bones of the body from the parameter
+        var list = Fullbody.GetComponentsInChildren<Transform>();
+        foreach (var child in list)
+        {
+            Debug.Log(child.gameObject.name);
+        }
+        return JointRig;
+    }
+
     private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
     {
         return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
     }
 
-    private static Color GetColorForState(Kinect.TrackingState state)
-    {
-        switch (state)
-        {
-            case Kinect.TrackingState.Tracked:
-                return Color.green;
-
-            case Kinect.TrackingState.Inferred:
-                return Color.red;
-
-            default:
-                return Color.black;
-        }
-    }
 }
