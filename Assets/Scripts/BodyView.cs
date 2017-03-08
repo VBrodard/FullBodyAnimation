@@ -142,7 +142,7 @@ public class BodyView : MonoBehaviour
                         
                 }
                 //otherwise the body exists already and we have to refresh it
-                RefreshBodyObject(body, _Bodies[body.TrackingId], _KinectToRig);
+                RefreshBodyObject(body, _Bodies[body.TrackingId], _JointRig[body.TrackingId]);
             }
         }
 
@@ -179,12 +179,14 @@ public class BodyView : MonoBehaviour
         return FullBody;
     }
 
-    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject, Dictionary<string, int> _KinectToRig)
+    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject, Transform[] _JointRig) 
     {
+        int RigIndex = 0;
         for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         {
             Kinect.Joint sourceJoint = body.Joints[jt]; //we load the data of the kinect joint
-
+            Debug.Log(_JointRig[RigIndex]);
+            
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString()); //we store the position of the current jt
             jointObj.localPosition = GetVector3FromJoint(sourceJoint); //set the local position of each joint, we "scale" the distance of everything by 10
                                                                        //otherwise we would be represented as a heap of spheres
@@ -197,13 +199,14 @@ public class BodyView : MonoBehaviour
 
                 Transform targetJointObj = bodyObject.transform.FindChild(body.Joints[_BoneMap[jt]].JointType.ToString());
 
-                //move the cylinder between the sourceJoint and the targetJoint
-
                 jointObj.LookAt(targetJointObj);    //position the direction of the bones to point at their joint target
                 Vector3 rot = jointObj.rotation.eulerAngles;
-                rot = new Vector3(rot.x + 90, rot.y, rot.z); //we have to add 90 degrees to the x axis of the bones
-                jointObj.rotation = Quaternion.Euler(rot);
+                rot = new Vector3(rot.x, rot.y, rot.z); //we have to add 90 degrees to the x axis of the bones
+                jointObj.rotation = Quaternion.Euler(rot);              
+                _JointRig[RigIndex].rotation = Quaternion.Euler(rot);             
+                
             }
+            RigIndex++;
         }
     }
 
@@ -221,7 +224,7 @@ public class BodyView : MonoBehaviour
             {
       
                 Rig[_KinectToRig[child.gameObject.name]] = child.gameObject.transform;
-                Debug.Log(Rig[_KinectToRig[child.gameObject.name]] + " at index " + _KinectToRig[child.gameObject.name]);
+                //Debug.Log(Rig[_KinectToRig[child.gameObject.name]] + " at index " + _KinectToRig[child.gameObject.name]);
             }
         }
         return Rig;
