@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/_Scene/level.unity
+- path: C:/Users/HEFR/Desktop/Demo/Assets/Kinect2VrExamples/DemoScenes/AvatarDemo/KinectAvatarDemo1.unity
   isLoaded: 1
   isActive: 1

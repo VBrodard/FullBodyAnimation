@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Kinect = Windows.Kinect;
@@ -6,7 +7,7 @@ using Kinect = Windows.Kinect;
 public class BodyView : MonoBehaviour
 {
     public GameObject BodyManager;
-    
+
     //We use a body prefab to generate the bodies of each tracked person
     public GameObject FullBodyPrefab;
     GameObject FullBody;
@@ -18,7 +19,7 @@ public class BodyView : MonoBehaviour
     //private List<GameObject> JointRig = new List<GameObject>();
 
     private BodyManager _BodyManager;
-    
+
     // map out all the bones by the two joints that they will be connected to
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -61,40 +62,43 @@ public class BodyView : MonoBehaviour
     private Dictionary<string, int> _KinectToRig = new Dictionary<string, int>()
     {
         //Left leg
-        { "Foot_L", 15},
-        { "Ankle_L", 14},
-        { "Knee_L", 13},
-        { "Hip_L", 12},
+        {"Foot_L", 15},
+        {"Ankle_L", 14},
+        {"Knee_L", 13},
+        {"Hip_L", 12},
 
         //Right leg
-        { "Foot_R", 19},
-        { "Ankle_R", 18},
+        {"Foot_R", 19},
+        {"Ankle_R", 18},
         {"Knee_R", 17},
         {"Hip_R", 16},
 
         //Left arm
-        { "HandTip_L", 21}, //Need this for HandSates
-        { "Thumb_L", 22},
-        { "Hand_L", 7},
-        { "Wrist_L", 6},
-        { "Elbow_L", 5},
-        { "Shoulder_L", 4},
+        {"HandTip_L", 21}, //Need this for HandSates
+        {"Thumb_L", 22},
+        {"Hand_L", 7},
+        {"Wrist_L", 6},
+        {"Elbow_L", 5},
+        {"Shoulder_L", 4},
 
         //Right arm
-        { "HandTip_R", 23}, //Needthis for Hand State
-        { "Thumb_R", 24},
-        { "Hand_R", 11},
-        { "Wrist_R", 10},
-        { "Elbow_R", 9},
-        { "Shoulder_R", 8},
+        {"HandTip_R", 23}, //Needthis for Hand State
+        {"Thumb_R", 24},
+        {"Hand_R", 11},
+        {"Wrist_R", 10},
+        {"Elbow_R", 9},
+        {"Shoulder_R", 8},
 
         //Spine and head
-        { "SpineBase", 0},
-        { "SpineMid", 1},
-        { "SpineShoulder", 20},
-        { "Neck", 2},
-
-        {"Head", 3}
+        {"Spinebase", 0},
+        {"SpineMid", 1},
+        {"SpineShoulder", 20},
+        {"Neck", 2},
+        {"Head", 3},
+        {"SpineMid_L", 25},
+        {"SpineMid_R", 26},
+        {"SpineBase_L", 27},
+        {"SpineBase_R", 28}
     };
     // Update is called on each frames
     void Update()
@@ -139,7 +143,7 @@ public class BodyView : MonoBehaviour
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId, body);
                     //We need to associate the joints of the specific character to his body
                     _JointRig[body.TrackingId] = ReferenceRigToBody(body, _KinectToRig, _Bodies[body.TrackingId]);
-                        
+
                 }
                 //otherwise the body exists already and we have to refresh it
                 RefreshBodyObject(body, _Bodies[body.TrackingId], _JointRig[body.TrackingId]);
@@ -179,14 +183,13 @@ public class BodyView : MonoBehaviour
         return FullBody;
     }
 
-    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject, Transform[] _JointRig) 
+    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject, Transform[] _JointRig)
     {
         int RigIndex = 0;
         for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         {
             Kinect.Joint sourceJoint = body.Joints[jt]; //we load the data of the kinect joint
-            Debug.Log(_JointRig[RigIndex]);
-            
+
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString()); //we store the position of the current jt
             jointObj.localPosition = GetVector3FromJoint(sourceJoint); //set the local position of each joint, we "scale" the distance of everything by 10
                                                                        //otherwise we would be represented as a heap of spheres
@@ -201,10 +204,27 @@ public class BodyView : MonoBehaviour
 
                 jointObj.LookAt(targetJointObj);    //position the direction of the bones to point at their joint target
                 Vector3 rot = jointObj.rotation.eulerAngles;
-                rot = new Vector3(rot.x, rot.y, rot.z); //we have to add 90 degrees to the x axis of the bones
-                jointObj.rotation = Quaternion.Euler(rot);              
-                _JointRig[RigIndex].rotation = Quaternion.Euler(rot);             
-                
+                rot = new Vector3(rot.x - 90f, rot.y, rot.z); //we have to add 90 degrees to the x axis of the bones
+                jointObj.rotation = Quaternion.Euler(rot);
+
+                _JointRig[RigIndex].localRotation = Quaternion.Euler(rot);
+
+                /*
+                if (_JointRig[RigIndex].name.Equals("Elbow_L") || _JointRig[RigIndex].name.Equals("Shoulder_L") || _JointRig[RigIndex].name.Equals("Hand_L"))
+                {
+                    //_JointRig[RigIndex].rotation = Quaternion.Euler(rot);
+                    _JointRig[RigIndex].localRotation = Quaternion.Euler(rot);
+                    Debug.Log("Angle Update : " + jointObj.name + " --> " + jointObj.rotation.ToString() +" avec " + _JointRig[RigIndex].name + " --> " + _JointRig[RigIndex].rotation.ToString());
+                }
+                */
+
+                /*
+                if (!_JointRig[RigIndex].name.Equals("SpineShoulder"))
+                {
+                    _JointRig[RigIndex].rotation = Quaternion.Euler(rot);
+                }
+                */
+
             }
             RigIndex++;
         }
@@ -212,9 +232,9 @@ public class BodyView : MonoBehaviour
 
     private Transform[] ReferenceRigToBody(Kinect.Body body, Dictionary<string, int> _KinectToRig, GameObject Fullbody)
     {
-        List<Transform> JointRig = new List<Transform>();
+        //List<Transform> JointRig = new List<Transform>();
 
-        Transform[] Rig = new Transform[25];
+        Transform[] Rig = new Transform[29];
 
         //this loop will go through all the bones of the body from the parameter
         var list = Fullbody.transform.GetChild(0).gameObject.GetComponentsInChildren<Transform>();
@@ -222,11 +242,12 @@ public class BodyView : MonoBehaviour
         {
             if (!child.gameObject.name.Equals("Armature") && !child.gameObject.name.Equals("male-base") && !child.gameObject.name.Equals("male-highpolyeyes") && !child.gameObject.name.Contains("Body"))
             {
-      
                 Rig[_KinectToRig[child.gameObject.name]] = child.gameObject.transform;
-                //Debug.Log(Rig[_KinectToRig[child.gameObject.name]] + " at index " + _KinectToRig[child.gameObject.name]);
             }
         }
+
+        Rig[20] = Fullbody.transform.GetChild(0); //We don't care about this value, we won't change it or load it
+        Debug.Log(Rig[5].name);
         return Rig;
     }
 

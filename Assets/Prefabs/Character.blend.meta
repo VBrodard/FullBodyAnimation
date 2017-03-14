@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: e2d22ab2698ee4947ad85dc59b298e4e
-timeCreated: 1488962834
+guid: 8f16af73587091c46b01bd7fe34c241e
+timeCreated: 1489066266
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -8,66 +8,69 @@ ModelImporter:
     100000: Ankle_L
     100002: Ankle_R
     100004: Armature
-    100006: Elbow_L
-    100008: Elbow_R
-    100010: Foot_L
-    100012: Foot_R
-    100014: //RootNode
-    100016: Hand_L
-    100018: Hand_R
-    100020: HandTip_L
-    100022: HandTip_R
-    100024: Hip_L
-    100026: Hip_R
-    100028: Knee_L
-    100030: Knee_R
-    100032: male-base
-    100034: male-highpolyeyes
+    100006: //RootNode
+    100008: character-base
+    100010: Elbow_L
+    100012: Elbow_R
+    100014: Foot_L
+    100016: Foot_R
+    100018: Hand_L
+    100020: Hand_R
+    100022: HandTip_L
+    100024: HandTip_R
+    100026: Head
+    100028: Hip_L
+    100030: Hip_R
+    100032: Knee_L
+    100034: Knee_R
     100036: Neck
     100038: Shoulder_L
     100040: Shoulder_R
-    100042: SpineBase
-    100044: SpineMid
-    100046: SpineShoulder
-    100048: Thumb_L
-    100050: Thumb_R
-    100052: Wrist_L
-    100054: Wrist_R
+    100042: Spinebase
+    100044: SpineBase_L
+    100046: SpineBase_R
+    100048: SpineMid
+    100050: SpineMid_L
+    100052: SpineMid_R
+    100054: Thumb_L
+    100056: Thumb_R
+    100058: Wrist_L
+    100060: Wrist_R
     400000: Ankle_L
     400002: Ankle_R
     400004: Armature
-    400006: Elbow_L
-    400008: Elbow_R
-    400010: Foot_L
-    400012: Foot_R
-    400014: //RootNode
-    400016: Hand_L
-    400018: Hand_R
-    400020: HandTip_L
-    400022: HandTip_R
-    400024: Hip_L
-    400026: Hip_R
-    400028: Knee_L
-    400030: Knee_R
-    400032: male-base
-    400034: male-highpolyeyes
+    400006: //RootNode
+    400008: character-base
+    400010: Elbow_L
+    400012: Elbow_R
+    400014: Foot_L
+    400016: Foot_R
+    400018: Hand_L
+    400020: Hand_R
+    400022: HandTip_L
+    400024: HandTip_R
+    400026: Head
+    400028: Hip_L
+    400030: Hip_R
+    400032: Knee_L
+    400034: Knee_R
     400036: Neck
     400038: Shoulder_L
     400040: Shoulder_R
-    400042: SpineBase
-    400044: SpineMid
-    400046: SpineShoulder
-    400048: Thumb_L
-    400050: Thumb_R
-    400052: Wrist_L
-    400054: Wrist_R
-    2300000: male-highpolyeyes
-    3300000: male-highpolyeyes
-    4300000: male-base
-    4300002: male-highpolyeyes
+    400042: Spinebase
+    400044: SpineBase_L
+    400046: SpineBase_R
+    400048: SpineMid
+    400050: SpineMid_L
+    400052: SpineMid_R
+    400054: Thumb_L
+    400056: Thumb_R
+    400058: Wrist_L
+    400060: Wrist_R
+    4300000: character-base
     7400000: Default Take
     9500000: //RootNode
-    13700000: male-base
+    13700000: character-base
   materials:
     importMaterials: 1
     materialName: 0
